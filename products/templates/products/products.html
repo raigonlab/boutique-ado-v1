@@ -1,0 +1,103 @@
+{# Herda o esqueleto do base.html (header, menu, CSS, JS) #}
+{% extends "base.html" %}
+{# Permite usar {% static %} neste arquivo #}
+{% load static %}
+
+{# Bloco do topo: só um espaço vazio para o conteúdo não ficar escondido atrás do header fixo #}
+{% block page_header %}
+    <div class="container header-container">
+        <div class="row">
+            <div class="col"></div>
+        </div>
+    </div>
+{% endblock %}
+
+{# Bloco principal da página #}
+{% block content %}
+    {# Fundo branco cobrindo a imagem de fundo da home (classe criada no CSS) #}
+    <div class="overlay"></div>
+    <div class="container-fluid">
+        {# Título "Products" centralizado, com uma linha embaixo #}
+        <div class="row">
+            <div class="col text-center mt-3">
+                <h2 class="logo-font">Products</h2>
+                <hr class="w-50 mb-1">
+            </div>
+        </div>
+        <div class="row">
+            {# Área dos produtos: 10 colunas de largura, empurrada 1 coluna da esquerda #}
+            <div class="product-container col-10 offset-1">
+                {# Linha vazia, usada depois para ordenação e busca #}
+                <div class="row mt-1 mb-2"></div>
+                <div class="row">
+                    {# Para CADA produto da mochila "products" que veio da view... #}
+                    {% for product in products %}
+                        {# Tamanho do cartão: 2 por linha no celular/tablet, 3 no notebook, 4 em tela grande #}
+                        <div class="col-sm-6 col-md-6 col-lg-4 col-xl-3">
+                            <div class="card h-100 border-0">
+                                {# Se o produto TEM imagem, mostra ela... #}
+                                {% if product.image %}
+                                <a href="">
+                                    <img class="card-img-top img-fluid" src="{{ product.image.url }}" alt="{{ product.name }}">
+                                </a>
+                                {# ...se NÃO tem, mostra a imagem padrão "noimage.png" #}
+                                {% else %}
+                                <a href="">
+                                    <img class="card-img-top img-fluid" src="{{ MEDIA_URL }}noimage.png" alt="{{ product.name }}">
+                                </a>
+                                {% endif %}
+                                {# Nome do produto #}
+                                <div class="card-body pb-0">
+                                    <p class="mb-0">{{ product.name }}</p>
+                                </div>
+                                {# Rodapé do cartão: preço e avaliação #}
+                                <div class="card-footer bg-white pt-0 border-0 text-left">
+                                    <div class="row">
+                                        <div class="col">
+                                            {# Preço com o símbolo $ na frente #}
+                                            <p class="lead mb-0 text-left font-weight-bold">${{ product.price }}</p>
+                                            {# Se tem nota, mostra a estrela e a nota. Se não, "No Rating" #}
+                                            {% if product.rating %}
+                                                <small class="text-muted"><i class="fas fa-star mr-1"></i>{{ product.rating }} / 5</small>
+                                            {% else %}
+                                                <small class="text-muted">No Rating</small>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {# Linhas separadoras (hr) depois de cada "fileira" de produtos. #}
+                        {# forloop.counter = número do produto na volta do loop (1, 2, 3...) #}
+                        {# divisibleby:N = "é divisível por N?" #}
+
+                        {# Celular (1 por linha): linha depois de CADA produto #}
+                        {% if forloop.counter|divisibleby:1 %}
+                            <div class="col-12 d-sm-none mb-5">
+                                <hr>
+                            </div>
+                        {% endif %}
+                        {# Tablet (2 por linha): linha a cada 2 produtos #}
+                        {% if forloop.counter|divisibleby:2 %}
+                            <div class="col-12 d-none d-sm-block d-md-block d-lg-none mb-5">
+                                <hr>
+                            </div>
+                        {% endif %}
+                        {# Notebook (3 por linha): linha a cada 3 produtos #}
+                        {% if forloop.counter|divisibleby:3 %}
+                            <div class="col-12 d-none d-lg-block d-xl-none mb-5">
+                                <hr>
+                            </div>
+                        {% endif %}
+                        {# Tela grande (4 por linha): linha a cada 4 produtos #}
+                        {% if forloop.counter|divisibleby:4 %}
+                            <div class="col-12 d-none d-xl-block mb-5">
+                                <hr>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

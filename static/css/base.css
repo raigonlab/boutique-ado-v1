@@ -61,6 +61,17 @@ body {
     background: #000 !important;
 }
 
+/* Camada branca que cobre a tela inteira, por trás do conteúdo.
+   Serve para esconder a imagem de fundo da home na página de produtos */
+   .overlay {
+    height: 100%;      /* altura: a tela toda */
+    width: 100%;       /* largura: a tela toda */
+    top: 0;            /* começa no topo... */
+    left: 0;           /* ...e no canto esquerdo */
+    position: fixed;   /* fica parada, mesmo quando rola a página */
+    background: white; /* cor branca */
+    z-index: -1;       /* fica ATRÁS de todo o resto (camada mais baixa) */
+}
 /* -------------------------------- Media Queries */
 
 /* Slightly larger container on xl screens */
