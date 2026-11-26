@@ -11,8 +11,8 @@ from django.contrib import messages
 # Q = permite montar buscas com "OU" (procure no nome OU na descrição)
 from django.db.models import Q
 
-# Do arquivo models desta mesma pasta, traga o modelo Product
-from .models import Product
+# Do arquivo models desta mesma pasta, traga os modelos Product e Category (NOVO)
+from .models import Product, Category
 
 # Create your views here.
 
@@ -26,9 +26,27 @@ def all_products(request):
     # Caixa do termo buscado. Começa vazia (None = "nada")
     query = None
 
+    # (NOVO) Caixa das categorias escolhidas. Também começa vazia
+    categories = None
+
     # request.GET = o que veio no endereço depois do "?"
-    # Ex: /products/?q=jeans  ->  request.GET = {'q': 'jeans'}
+    # Ex: /products/?category=jeans  ->  request.GET = {'category': 'jeans'}
     if request.GET:
+
+        # (NOVO) Se veio o campo 'category' no endereço...
+        if 'category' in request.GET:
+            # ...pegue o texto e corte nas vírgulas, virando uma lista
+            # Ex: 'jeans,shirts'  ->  ['jeans', 'shirts']
+            categories = request.GET['category'].split(',')
+
+            # Fique só com produtos cuja categoria tem o nome DENTRO (__in) da lista
+            # category__name = "vá até a categoria do produto e olhe o campo name"
+            products = products.filter(category__name__in=categories)
+
+            # Troque a lista de textos pelos objetos Category de verdade,
+            # para podermos usar no HTML depois (ex: o friendly_name)
+            categories = Category.objects.filter(name__in=categories)
+
         # Se veio o campo 'q' (é o name="q" do input da barra de busca)...
         if 'q' in request.GET:
             # ...guarde o texto digitado na caixa query
@@ -48,10 +66,11 @@ def all_products(request):
             # Filtre os produtos: fique só com os que combinam com a busca
             products = products.filter(queries)
 
-    # Mochila: os produtos (todos ou filtrados) + o termo buscado
+    # Mochila: os produtos + o termo buscado + (NOVO) as categorias escolhidas
     context = {
         'products': products,
         'search_term': query,
+        'current_categories': categories,
     }
 
     # Responda com a página products.html preenchida com a mochila
