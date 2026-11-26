@@ -37,12 +37,16 @@
                             <div class="card h-100 border-0">
                                 {# Se o produto TEM imagem, mostra ela... #}
                                 {% if product.image %}
-                                <a href="">
+                                {# Link para a página de detalhe DESTE produto. #}
+{# 'product_detail' = apelido da URL / product.id = número do produto (vira /products/5) #}
+<a href="{% url 'product_detail' product.id %}">
                                     <img class="card-img-top img-fluid" src="{{ product.image.url }}" alt="{{ product.name }}">
                                 </a>
                                 {# ...se NÃO tem, mostra a imagem padrão "noimage.png" #}
                                 {% else %}
-                                <a href="">
+                                {# Link para a página de detalhe DESTE produto. #}
+{# 'product_detail' = apelido da URL / product.id = número do produto (vira /products/5) #}
+<a href="{% url 'product_detail' product.id %}">
                                     <img class="card-img-top img-fluid" src="{{ MEDIA_URL }}noimage.png" alt="{{ product.name }}">
                                 </a>
                                 {% endif %}
