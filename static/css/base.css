@@ -95,3 +95,15 @@ body {
         padding-top: 164px;
     }
 }
+
+/* No celular/tablet (telas até 991px) o header é mais baixo,
+   então o espaço no topo da página também é menor */
+   @media (max-width: 991px) {
+    .header-container {
+        padding-top: 116px;   /* espaço para o conteúdo não ficar atrás do header */
+    }
+
+    body {
+        height: calc(100vh - 116px);   /* altura da tela menos o header */
+    }
+}

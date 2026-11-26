@@ -11,7 +11,11 @@ from django.contrib import messages
 # Q = permite montar buscas com "OU" (procure no nome OU na descrição)
 from django.db.models import Q
 
-# Do arquivo models desta mesma pasta, traga os modelos Product e Category (NOVO)
+# (NOVO) Lower = transforma texto em minúsculas, dentro do banco.
+# Usado para ordenar por nome sem que "Zebra" venha antes de "abacaxi"
+from django.db.models.functions import Lower
+
+# Do arquivo models desta mesma pasta, traga os modelos Product e Category
 from .models import Product, Category
 
 # Create your views here.
@@ -23,17 +27,43 @@ def all_products(request):
     # Comece com TODOS os produtos
     products = Product.objects.all()
 
-    # Caixa do termo buscado. Começa vazia (None = "nada")
-    query = None
-
-    # (NOVO) Caixa das categorias escolhidas. Também começa vazia
-    categories = None
+    # Caixas que começam vazias (None = "nada"):
+    query = None        # termo buscado
+    categories = None   # categorias escolhidas
+    sort = None         # (NOVO) por qual campo ordenar (price, rating, name...)
+    direction = None    # (NOVO) direção: 'asc' (crescente) ou 'desc' (decrescente)
 
     # request.GET = o que veio no endereço depois do "?"
-    # Ex: /products/?category=jeans  ->  request.GET = {'category': 'jeans'}
+    # Ex: /products/?sort=price&direction=asc
+    #     -> request.GET = {'sort': 'price', 'direction': 'asc'}
     if request.GET:
 
-        # (NOVO) Se veio o campo 'category' no endereço...
+        # (NOVO) Se veio o campo 'sort' no endereço...
+        if 'sort' in request.GET:
+            # ...guarde o campo escolhido (ex: 'price')
+            sortkey = request.GET['sort']
+            # Guarde uma cópia original em "sort" (usada no fim, em current_sorting)
+            sort = sortkey
+
+            # Se for ordenar por NOME...
+            if sortkey == 'name':
+                # ...ordene por uma versão em minúsculas do nome
+                sortkey = 'lower_name'
+                # annotate = cria um "campo temporário" lower_name em cada produto
+                products = products.annotate(lower_name=Lower('name'))
+
+            # Se veio também a direção...
+            if 'direction' in request.GET:
+                direction = request.GET['direction']
+                # Se for 'desc', coloque um "-" na frente: no Django, "-price"
+                # significa "do maior para o menor"
+                if direction == 'desc':
+                    sortkey = f'-{sortkey}'
+
+            # Ordene os produtos pelo campo escolhido
+            products = products.order_by(sortkey)
+
+        # Se veio o campo 'category' no endereço...
         if 'category' in request.GET:
             # ...pegue o texto e corte nas vírgulas, virando uma lista
             # Ex: 'jeans,shirts'  ->  ['jeans', 'shirts']
@@ -66,11 +96,16 @@ def all_products(request):
             # Filtre os produtos: fique só com os que combinam com a busca
             products = products.filter(queries)
 
-    # Mochila: os produtos + o termo buscado + (NOVO) as categorias escolhidas
+    # (NOVO) Junte campo + direção num texto só. Ex: 'price_asc'
+    # Se não escolheu nada, fica 'None_None'
+    current_sorting = f'{sort}_{direction}'
+
+    # Mochila: produtos + termo buscado + categorias + (NOVO) ordenação atual
     context = {
         'products': products,
         'search_term': query,
         'current_categories': categories,
+        'current_sorting': current_sorting,
     }
 
     # Responda com a página products.html preenchida com a mochila
